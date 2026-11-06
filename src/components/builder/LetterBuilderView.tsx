@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   FileEdit,
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 interface LetterBuilderViewProps {
   document: LetterDocument;
@@ -28,6 +29,7 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
   onUpdateDocument,
   onSaveToDashboard,
 }) => {
+  const { toast } = useAlert();
   const [mobileTab, setMobileTab] = useState<'form' | 'preview'>('form');
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isExportingDocx, setIsExportingDocx] = useState<boolean>(false);
@@ -64,6 +66,7 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
   const handleSave = () => {
     onSaveToDashboard(doc);
     setSaveSuccessNotice(true);
+    toast.success('Draf surat izin berhasil disimpan ke dashboard.');
     setTimeout(() => setSaveSuccessNotice(false), 2500);
   };
 
@@ -71,8 +74,9 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
     try {
       setIsExportingDocx(true);
       await exportLetterToDocx(doc);
+      toast.success('Dokumen Word (.docx) berhasil diunduh.');
     } catch {
-      alert('Gagal menyusun dokumen Word (.docx).');
+      toast.error('Gagal menyusun dokumen Word (.docx).', 'Ekspor Gagal');
     } finally {
       setIsExportingDocx(false);
     }
@@ -83,8 +87,9 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
       setIsExportingPdf(true);
       const filename = `surat_izin_${doc.tanggalSurat}`;
       await pdfGenerator.downloadElementAsPdf('a4-document-preview', filename);
+      toast.success('Berkas PDF berhasil diekspor.');
     } catch {
-      alert('Gagal menghasilkan file PDF.');
+      toast.error('Gagal menghasilkan file PDF.', 'Ekspor Gagal');
     } finally {
       setIsExportingPdf(false);
     }

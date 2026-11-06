@@ -11,6 +11,7 @@ import {
   Database,
   Building,
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 interface SettingsViewProps {
   profile: StudentProfile;
@@ -23,6 +24,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateProfile,
   onRefreshLetters,
 }) => {
+  const { toast, showConfirm } = useAlert();
   const [formData, setFormData] = useState<StudentProfile>(profile);
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
   const jsonInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +34,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     storageService.saveProfile(formData);
     onUpdateProfile(formData);
     setSavedSuccess(true);
+    toast.success('Profil siswa berhasil diperbarui.');
     setTimeout(() => setSavedSuccess(false), 2500);
   };
 
@@ -44,6 +47,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     a.download = `backup_surat_del_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success('File cadangan JSON berhasil diunduh.');
   };
 
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,9 +64,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           setFormData(updatedProfile);
           onUpdateProfile(updatedProfile);
           onRefreshLetters();
-          alert('Data riwayat surat dan profil berhasil dipulihkan.');
+          toast.success('Data riwayat surat dan profil berhasil dipulihkan.');
         } else {
-          alert('Format file backup JSON tidak valid.');
+          toast.error('Format berkas cadangan JSON tidak valid.', 'Gagal Memulihkan');
         }
       }
     };
@@ -71,15 +75,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleClearAllHistory = () => {
-    if (
-      confirm(
-        'PERINGATAN: Seluruh riwayat surat di browser ini akan dihapus secara permanen. Lanjutkan?'
-      )
-    ) {
-      localStorage.removeItem('del_letter_history_docs');
-      onRefreshLetters();
-      alert('Semua riwayat surat telah dibersihkan.');
-    }
+    showConfirm({
+      title: 'Hapus Semua Riwayat',
+      message: 'PERINGATAN: Seluruh riwayat surat di peramban ini akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan. Lanjutkan?',
+      confirmLabel: 'Ya, Bersihkan Semua',
+      cancelLabel: 'Batal',
+      isDestructive: true,
+      onConfirm: () => {
+        localStorage.removeItem('del_letter_history_docs');
+        onRefreshLetters();
+        toast.success('Semua riwayat surat telah berhasil dibersihkan.');
+      },
+    });
   };
 
   return (

@@ -18,6 +18,7 @@ import {
   Download,
   Inbox,
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 interface DashboardViewProps {
   letters: LetterDocument[];
@@ -32,6 +33,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateToSettings,
   onRefreshLetters,
 }) => {
+  const { toast, showConfirm } = useAlert();
   const [filterCategory, setFilterCategory] = useState<'ALL' | LetterCategory>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [previewModalDoc, setPreviewModalDoc] = useState<LetterDocument | null>(null);
@@ -56,10 +58,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   const handleDelete = (id: string) => {
-    if (confirm('Hapus surat ini dari riwayat browser Anda?')) {
-      storageService.deleteLetter(id);
-      onRefreshLetters();
-    }
+    showConfirm({
+      title: 'Hapus Surat',
+      message: 'Apakah Anda yakin ingin menghapus surat ini dari riwayat browser? Dokumen yang terhapus tidak dapat dikembalikan.',
+      confirmLabel: 'Ya, Hapus',
+      cancelLabel: 'Batal',
+      isDestructive: true,
+      onConfirm: () => {
+        storageService.deleteLetter(id);
+        onRefreshLetters();
+        toast.success('Surat berhasil dihapus dari riwayat.');
+      },
+    });
   };
 
   const handleDuplicate = (doc: LetterDocument) => {
@@ -72,6 +82,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     };
     storageService.saveLetter(duplicated);
     onRefreshLetters();
+    toast.success('Surat berhasil diduplikasi sebagai draf baru.');
   };
 
   const handleDownloadDocx = async (doc: LetterDocument) => {

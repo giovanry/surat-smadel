@@ -6,6 +6,7 @@ import { HeaderMobile } from './components/layout/HeaderMobile';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { LetterBuilderView } from './components/builder/LetterBuilderView';
 import { SettingsView } from './components/settings/SettingsView';
+import { AlertProvider } from './context/AlertContext';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
@@ -55,55 +56,57 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col lg:flex-row font-sans">
-      {/* Sidebar Navigasi Desktop */}
-      <div className="hidden lg:block">
-        <Sidebar
+    <AlertProvider>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col lg:flex-row font-sans">
+        {/* Sidebar Navigasi Desktop */}
+        <div className="hidden lg:block">
+          <Sidebar
+            currentTab={currentTab}
+            onSelectTab={setCurrentTab}
+            isDarkMode={isDarkMode}
+            onToggleTheme={handleToggleTheme}
+            letterCount={letters.length}
+          />
+        </div>
+
+        {/* Header Navigasi Mobile / Tablet */}
+        <HeaderMobile
           currentTab={currentTab}
           onSelectTab={setCurrentTab}
           isDarkMode={isDarkMode}
           onToggleTheme={handleToggleTheme}
           letterCount={letters.length}
         />
+
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              letters={letters}
+              onNavigateToBuilder={handleNavigateToBuilder}
+              onNavigateToSettings={() => setCurrentTab('settings')}
+              onRefreshLetters={handleRefreshLetters}
+            />
+          )}
+
+          {currentTab === 'builder' && (
+            <LetterBuilderView
+              document={activeDocument}
+              onUpdateDocument={setActiveDocument}
+              onSaveToDashboard={handleSaveToDashboard}
+            />
+          )}
+
+          {currentTab === 'settings' && (
+            <SettingsView
+              profile={profile}
+              onUpdateProfile={setProfile}
+              onRefreshLetters={handleRefreshLetters}
+            />
+          )}
+        </main>
       </div>
-
-      {/* Header Navigasi Mobile / Tablet */}
-      <HeaderMobile
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
-        isDarkMode={isDarkMode}
-        onToggleTheme={handleToggleTheme}
-        letterCount={letters.length}
-      />
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
-        {currentTab === 'dashboard' && (
-          <DashboardView
-            letters={letters}
-            onNavigateToBuilder={handleNavigateToBuilder}
-            onNavigateToSettings={() => setCurrentTab('settings')}
-            onRefreshLetters={handleRefreshLetters}
-          />
-        )}
-
-        {currentTab === 'builder' && (
-          <LetterBuilderView
-            document={activeDocument}
-            onUpdateDocument={setActiveDocument}
-            onSaveToDashboard={handleSaveToDashboard}
-          />
-        )}
-
-        {currentTab === 'settings' && (
-          <SettingsView
-            profile={profile}
-            onUpdateProfile={setProfile}
-            onRefreshLetters={handleRefreshLetters}
-          />
-        )}
-      </main>
-    </div>
+    </AlertProvider>
   );
 };
 

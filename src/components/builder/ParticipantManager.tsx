@@ -17,6 +17,7 @@ import {
   Calendar,
   UserCheck,
 } from 'lucide-react';
+import { useAlert } from '../../context/AlertContext';
 
 interface ParticipantManagerProps {
   kategori: LetterCategory;
@@ -41,6 +42,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({
   onChangePeserta,
   onChangeJadwal,
 }) => {
+  const { toast } = useAlert();
   const isKesiswaan = kategori === 'KESISWAAN';
   const participantFileRef = useRef<HTMLInputElement>(null);
   const scheduleFileRef = useRef<HTMLInputElement>(null);
@@ -61,11 +63,12 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({
       updated[0] = myself;
       onChangePeserta(updated);
     }
+    toast.success('Data pemohon diisi otomatis dari profil Anda.');
   };
 
   const handleAddParticipant = () => {
     if (modePeserta === 'INLINE_LTE_10' && daftarPeserta.length >= 10) {
-      alert('Mode inline dibatasi maksimal 10 orang. Silakan beralih ke Mode Lampiran (>10 Orang).');
+      toast.warning('Mode inline dibatasi maksimal 10 orang. Silakan beralih ke Mode Lampiran (>10 Orang).', 'Batas Peserta');
       return;
     }
     const newParticipant: ParticipantItem = {
@@ -128,11 +131,12 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({
         if (parsed.length > 10) {
           onChangeModePeserta('ATTACHMENT_GT_10');
         }
+        toast.success(`Berhasil mengimpor ${parsed.length} data peserta dari Excel.`);
       } else {
-        alert('File Excel tidak memuat baris data peserta yang valid.');
+        toast.error('File Excel tidak memuat baris data peserta yang valid.', 'Gagal Impor');
       }
     } catch {
-      alert('Gagal membaca file Excel. Pastikan format kolom sesuai template.');
+      toast.error('Gagal membaca file Excel. Pastikan format kolom sesuai template.', 'Format Tidak Sesuai');
     } finally {
       if (participantFileRef.current) participantFileRef.current.value = '';
     }
@@ -146,11 +150,12 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({
       if (parsed.length > 0) {
         onChangeJadwal(parsed);
         onChangeGunakanJadwal(true);
+        toast.success(`Berhasil mengimpor ${parsed.length} sesi jadwal dari Excel.`);
       } else {
-        alert('File Excel tidak memuat data jadwal yang valid.');
+        toast.error('File Excel tidak memuat data jadwal yang valid.', 'Gagal Impor');
       }
     } catch {
-      alert('Gagal membaca file Excel jadwal.');
+      toast.error('Gagal membaca file Excel jadwal.', 'Format Tidak Sesuai');
     } finally {
       if (scheduleFileRef.current) scheduleFileRef.current.value = '';
     }

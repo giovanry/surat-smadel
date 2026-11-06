@@ -115,15 +115,21 @@ export const A4PreviewContainer: React.FC<A4PreviewContainerProps> = ({ document
           className="print:transform-none"
         >
           {/* Halaman 1: Surat Utama */}
-          {(activeTab === 'all' || activeTab === 'page1') && (
-            <div className="shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform">
-              <MainLetterPage document={doc} />
-            </div>
-          )}
+          <div
+            className={`shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform ${
+              activeTab === 'page2' ? 'hidden print:block' : ''
+            }`}
+          >
+            <MainLetterPage document={doc} />
+          </div>
 
           {/* Halaman 2: Lampiran */}
-          {hasAttachment && (activeTab === 'all' || activeTab === 'page2') && (
-            <div className="shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform">
+          {hasAttachment && (
+            <div
+              className={`shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform ${
+                activeTab === 'page1' ? 'hidden print:block' : ''
+              }`}
+            >
               <AttachmentPage document={doc} />
             </div>
           )}
