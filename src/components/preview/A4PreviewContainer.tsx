@@ -116,7 +116,7 @@ export const A4PreviewContainer: React.FC<A4PreviewContainerProps> = ({ document
         >
           {/* Halaman 1: Surat Utama */}
           <div
-            className={`shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform ${
+            className={`shadow-md border border-slate-300 dark:border-slate-700 rounded-xs print:shadow-none print:border-none mb-8 print:mb-0 transition-transform ${
               activeTab === 'page2' ? 'hidden print:block' : ''
             }`}
           >
@@ -126,7 +126,7 @@ export const A4PreviewContainer: React.FC<A4PreviewContainerProps> = ({ document
           {/* Halaman 2: Lampiran */}
           {hasAttachment && (
             <div
-              className={`shadow-2xl rounded-sm print:shadow-none mb-8 print:mb-0 transition-transform ${
+              className={`shadow-md border border-slate-300 dark:border-slate-700 rounded-xs print:shadow-none print:border-none mb-8 print:mb-0 transition-transform ${
                 activeTab === 'page1' ? 'hidden print:block' : ''
               }`}
             >

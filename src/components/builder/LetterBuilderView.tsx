@@ -34,7 +34,6 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
   const [activeStep, setActiveStep] = useState<number>(1);
   const [isExportingDocx, setIsExportingDocx] = useState<boolean>(false);
   const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
-  const [saveSuccessNotice, setSaveSuccessNotice] = useState<boolean>(false);
 
   const handleChangeCategory = (nextCategory: LetterCategory) => {
     if (nextCategory === doc.kategori) return;
@@ -65,9 +64,7 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
 
   const handleSave = () => {
     onSaveToDashboard(doc);
-    setSaveSuccessNotice(true);
-    toast.success('Draf surat izin berhasil disimpan ke dashboard.');
-    setTimeout(() => setSaveSuccessNotice(false), 2500);
+    toast.success('Draf surat izin berhasil disimpan.');
   };
 
   const handleDownloadDocx = async () => {
@@ -111,12 +108,6 @@ export const LetterBuilderView: React.FC<LetterBuilderViewProps> = ({
 
         {/* Action Buttons with tactile feedback */}
         <div className="flex items-center gap-2">
-          {saveSuccessNotice && (
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 animate-view-enter">
-              <CheckCircle2 className="w-4 h-4" /> Tersimpan!
-            </span>
-          )}
-
           <button
             type="button"
             onClick={handleSave}

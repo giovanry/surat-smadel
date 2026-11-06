@@ -4,9 +4,9 @@ export const pdfGenerator = {
   },
 
   async downloadElementAsPdf(elementId: string, filename: string): Promise<boolean> {
-    const sourceElement = document.getElementById(elementId);
-    if (!sourceElement) {
-      alert('Elemen dokumen tidak ditemukan.');
+    const previewElement = document.getElementById(elementId);
+    if (!previewElement) {
+      window.print();
       return false;
     }
 
@@ -15,62 +15,33 @@ export const pdfGenerator = {
       const html2pdfModule = await import('html2pdf.js');
       const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 
-      // 1. Buat kontainer sandbox terisolasi murni 1:1 A4
-      // Ini menyelesaikan masalah margin ganda yang disebabkan oleh CSS scale(zoom),
-      // shadow-2xl, dan margin preview UI pada DOM langsung.
-      const printSandbox = document.createElement('div');
-      printSandbox.id = 'pdf-render-sandbox';
-      printSandbox.style.position = 'fixed';
-      printSandbox.style.left = '-99999px';
-      printSandbox.style.top = '0';
-      printSandbox.style.width = '210mm';
-      printSandbox.style.margin = '0';
-      printSandbox.style.padding = '0';
-      printSandbox.style.background = '#ffffff';
-      printSandbox.style.zIndex = '-99999';
+      // 1. Simpan gaya asli elemen sebelum capture
+      const originalTransform = previewElement.style.transform;
+      const originalTransition = previewElement.style.transition;
 
-      // 2. Ambil semua halaman A4 (.a4-page)
-      const pageElements = sourceElement.querySelectorAll('.a4-page');
+      // 2. Tampilkan semua halaman yang sedang disembunyikan oleh tab filter (Hal 1 / Hal 2)
+      const hiddenPages = Array.from(previewElement.querySelectorAll<HTMLElement>('.hidden'));
+      hiddenPages.forEach((el) => el.classList.remove('hidden'));
 
-      if (pageElements.length === 0) {
-        const clone = sourceElement.cloneNode(true) as HTMLElement;
-        clone.style.transform = 'none';
-        clone.style.margin = '0';
-        printSandbox.appendChild(clone);
-      } else {
-        pageElements.forEach((page, index) => {
-          const pageClone = page.cloneNode(true) as HTMLElement;
+      // 3. Matikan sementara zoom scale agar ukuran murni 1:1 (210mm x 297mm)
+      // Ini menyelesaikan masalah PDF kosong (karena koordinat -99999px)
+      // dan margin ganda (karena zoom scale 0.85).
+      previewElement.style.transition = 'none';
+      previewElement.style.transform = 'none';
 
-          // Hapus semua class UI preview yang mengganggu ukuran & margin
-          pageClone.classList.remove('shadow-2xl', 'rounded-sm', 'mb-8', 'mt-8', 'hidden');
+      // 4. Bersihkan sementara shadow dan margin antar halaman
+      const shadowElements = Array.from(previewElement.querySelectorAll<HTMLElement>('.shadow-2xl, .shadow-md'));
+      const removedShadowEls: HTMLElement[] = [];
+      shadowElements.forEach((el) => {
+        el.classList.remove('shadow-2xl', 'shadow-md');
+        removedShadowEls.push(el);
+      });
 
-          // Terapkan ukuran murni A4 1:1 tanpa zoom
-          pageClone.style.transform = 'none';
-          pageClone.style.margin = '0';
-          pageClone.style.boxShadow = 'none';
-          pageClone.style.width = '210mm';
-          pageClone.style.minHeight = '297mm';
-          pageClone.style.height = '297mm';
-          pageClone.style.maxHeight = '297mm';
-          pageClone.style.padding = '25.4mm';
-          pageClone.style.boxSizing = 'border-box';
-          pageClone.style.overflow = 'hidden';
-          pageClone.style.background = '#ffffff';
-
-          if (index > 0) {
-            pageClone.style.pageBreakBefore = 'always';
-            pageClone.style.breakBefore = 'page';
-          }
-
-          printSandbox.appendChild(pageClone);
-        });
-      }
-
-      document.body.appendChild(printSandbox);
+      const cleanFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
 
       const opt = {
         margin: 0,
-        filename: filename.endsWith('.pdf') ? filename : `${filename}.pdf`,
+        filename: cleanFilename,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: {
           scale: 2,
@@ -88,13 +59,19 @@ export const pdfGenerator = {
         pagebreak: { mode: ['css', 'legacy'] },
       };
 
-      await html2pdf().set(opt).from(printSandbox).save();
+      try {
+        await html2pdf().set(opt).from(previewElement).save();
+      } finally {
+        // 5. Kembalikan kondisi tampilan preview ke semula
+        previewElement.style.transform = originalTransform;
+        previewElement.style.transition = originalTransition;
+        hiddenPages.forEach((el) => el.classList.add('hidden'));
+        removedShadowEls.forEach((el) => el.classList.add('shadow-md'));
+      }
 
-      // Bersihkan sandbox dari DOM
-      document.body.removeChild(printSandbox);
       return true;
     } catch (err) {
-      console.error('Gagal membuat PDF otomatis, beralih ke print dialog:', err);
+      console.error('Gagal generate PDF via html2pdf, beralih ke print dialog:', err);
       window.print();
       return true;
     }

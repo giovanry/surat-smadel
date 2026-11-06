@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface DatePickerInputProps {
@@ -9,7 +9,6 @@ interface DatePickerInputProps {
   disabled?: boolean;
 }
 
-// Konversi nilai ISO YYYY-MM-DD ke format tampilan DD/MM/YYYY
 function toDisplayDDMMYYYY(val?: string): string {
   if (!val) return '';
   const trimmed = val.trim();
@@ -21,7 +20,6 @@ function toDisplayDDMMYYYY(val?: string): string {
   return trimmed;
 }
 
-// Konversi nilai input DD/MM/YYYY ke ISO YYYY-MM-DD
 function toIsoYYYYMMDD(val?: string): string {
   if (!val) return '';
   const trimmed = val.trim();
@@ -41,7 +39,12 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   disabled = false,
 }) => {
   const hiddenDateRef = useRef<HTMLInputElement>(null);
-  const displayValue = toDisplayDDMMYYYY(value);
+  const [inputText, setInputText] = useState<string>(() => toDisplayDDMMYYYY(value));
+
+  // Sinkronisasi teks input jika value dari luar berubah
+  useEffect(() => {
+    setInputText(toDisplayDDMMYYYY(value));
+  }, [value]);
 
   const handleOpenPicker = () => {
     if (disabled || !hiddenDateRef.current) return;
@@ -56,37 +59,32 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     }
   };
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let input = e.target.value.replace(/[^\d/]/g, '');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setInputText(raw);
 
-    // Format otomatis saat pengguna mengetik angka tanpa slash
-    if (!input.includes('/') && input.length >= 2) {
-      if (input.length <= 4) {
-        input = `${input.slice(0, 2)}/${input.slice(2)}`;
-      } else {
-        input = `${input.slice(0, 2)}/${input.slice(2, 4)}/${input.slice(4, 8)}`;
-      }
-    }
-
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(input)) {
-      const [dStr, mStr, yStr] = input.split('/');
+    // Jika input berformat lengkap DD/MM/YYYY, konversi ke ISO dan panggil onChange
+    const trimmed = raw.trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+      const [dStr, mStr, yStr] = trimmed.split('/');
       const d = parseInt(dStr, 10);
       const m = parseInt(mStr, 10);
       const y = parseInt(yStr, 10);
       if (d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 1900 && y <= 2100) {
-        onChange(toIsoYYYYMMDD(input));
+        onChange(toIsoYYYYMMDD(trimmed));
         return;
       }
     }
 
-    // Jika belum lengkap atau format bebas, kirimkan perubahan teks
-    onChange(input);
+    // Jika pengguna sedang mengedit/menghapus, simpan nilai raw sementara
+    onChange(raw);
   };
 
   const handleNativePickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const pickedIso = e.target.value;
     if (pickedIso) {
       onChange(pickedIso);
+      setInputText(toDisplayDDMMYYYY(pickedIso));
     }
   };
 
@@ -95,8 +93,8 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
       <input
         type="text"
         disabled={disabled}
-        value={displayValue}
-        onChange={handleTextChange}
+        value={inputText}
+        onChange={handleChange}
         placeholder={placeholder}
         maxLength={10}
         className="w-full pl-3 pr-9 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-del-700 transition-colors font-mono tracking-tight"
@@ -125,4 +123,3 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
     </div>
   );
 };
-

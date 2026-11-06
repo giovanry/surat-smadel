@@ -64,7 +64,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     setTimeout(() => {
       removeToast(id);
-    }, 3800);
+    }, 3500);
   }, [removeToast]);
 
   const toast = {
@@ -107,44 +107,40 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <AlertContext.Provider value={{ toast, showAlert, showConfirm }}>
       {children}
 
-      {/* 1. Toast Notification Container (Top-Right Floating) */}
+      {/* 1. Toast Notification Container (Bottom-Right, tidak menutupi tombol header) */}
       <div
-        className="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-3 sm:px-0"
+        className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"
         aria-live="polite"
       >
         {toasts.map((item) => {
           const typeConfig = {
             success: {
-              border: 'border-emerald-300 dark:border-emerald-800',
+              border: 'border-slate-200 dark:border-slate-800',
               bg: 'bg-white dark:bg-slate-900',
               iconBg: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400',
               icon: CheckCircle2,
               title: item.title || 'Berhasil',
-              bar: 'bg-emerald-600',
             },
             error: {
-              border: 'border-rose-300 dark:border-rose-800',
+              border: 'border-slate-200 dark:border-slate-800',
               bg: 'bg-white dark:bg-slate-900',
               iconBg: 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400',
               icon: AlertCircle,
               title: item.title || 'Terjadi Kendala',
-              bar: 'bg-rose-600',
             },
             warning: {
-              border: 'border-amber-300 dark:border-amber-800',
+              border: 'border-slate-200 dark:border-slate-800',
               bg: 'bg-white dark:bg-slate-900',
               iconBg: 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400',
               icon: AlertTriangle,
               title: item.title || 'Perhatian',
-              bar: 'bg-amber-500',
             },
             info: {
-              border: 'border-del-300 dark:border-del-800',
+              border: 'border-slate-200 dark:border-slate-800',
               bg: 'bg-white dark:bg-slate-900',
               iconBg: 'bg-del-50 dark:bg-del-950 text-del-700 dark:text-del-400',
               icon: Info,
               title: item.title || 'Informasi',
-              bar: 'bg-del-700',
             },
           }[item.type];
 
@@ -153,7 +149,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           return (
             <div
               key={item.id}
-              className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl border ${typeConfig.border} ${typeConfig.bg} shadow-lg shadow-slate-900/10 dark:shadow-black/40 animate-view-enter relative overflow-hidden transition-all`}
+              className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-2xl border ${typeConfig.border} ${typeConfig.bg} shadow-md shadow-slate-900/5 dark:shadow-black/30 animate-view-enter relative overflow-hidden transition-all`}
             >
               <div
                 className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${typeConfig.iconBg}`}
@@ -174,6 +170,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
                 type="button"
                 onClick={() => removeToast(item.id)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+                aria-label="Tutup notifikasi"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -182,15 +179,15 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         })}
       </div>
 
-      {/* 2. Modal Dialog Alert (Informasi / Peringatan) */}
+      {/* 2. Modal Dialog Alert (Matte, Solid, Anti-Slop) */}
       {alertDialog && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-modal-backdrop">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-modal-content space-y-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 animate-modal-backdrop">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-lg animate-modal-content space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-del-50 dark:bg-del-950 text-del-700 dark:text-del-400 flex items-center justify-center shrink-0">
-                <Info className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-del-50 dark:bg-del-950 text-del-700 dark:text-del-400 flex items-center justify-center shrink-0">
+                <Info className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                 {alertDialog.title}
               </h3>
             </div>
@@ -203,7 +200,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               <button
                 type="button"
                 onClick={handleCloseAlert}
-                className="px-4 py-2 rounded-xl bg-del-700 hover:bg-del-800 text-white text-xs font-semibold active:scale-[0.96] transition-all shadow-xs"
+                className="px-4 py-2 rounded-xl bg-del-700 hover:bg-del-800 text-white text-xs font-semibold active:scale-[0.97] transition-all shadow-xs"
               >
                 {alertDialog.confirmLabel || 'Mengerti'}
               </button>
@@ -212,25 +209,25 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         </div>
       )}
 
-      {/* 3. Modal Dialog Confirmation (Konfirmasi Aksi) */}
+      {/* 3. Modal Dialog Confirmation (Solid, Anti-Slop) */}
       {confirmDialog && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-modal-backdrop">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl animate-modal-content space-y-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 animate-modal-backdrop">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-lg animate-modal-content space-y-4">
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                   confirmDialog.isDestructive
                     ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400'
                     : 'bg-del-50 dark:bg-del-950 text-del-700 dark:text-del-400'
                 }`}
               >
                 {confirmDialog.isDestructive ? (
-                  <AlertCircle className="w-5 h-5" />
+                  <AlertCircle className="w-4 h-4" />
                 ) : (
-                  <AlertTriangle className="w-5 h-5" />
+                  <AlertTriangle className="w-4 h-4" />
                 )}
               </div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                 {confirmDialog.title}
               </h3>
             </div>
@@ -243,7 +240,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               <button
                 type="button"
                 onClick={handleCancelAction}
-                className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold active:scale-[0.96] transition-all"
+                className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold active:scale-[0.97] transition-all"
               >
                 {confirmDialog.cancelLabel || 'Batal'}
               </button>
@@ -251,7 +248,7 @@ export const AlertProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               <button
                 type="button"
                 onClick={handleConfirmAction}
-                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold active:scale-[0.96] transition-all shadow-xs ${
+                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold active:scale-[0.97] transition-all shadow-xs ${
                   confirmDialog.isDestructive
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : 'bg-del-700 hover:bg-del-800'
